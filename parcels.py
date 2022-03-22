@@ -1,10 +1,7 @@
 import requests
-import multiprocessing
 import json
 import os
-
-from multiprocessing import Process, Pool
-
+import time
 
 PARCELS_URL = 'https://api.decentraland.org/v2/parcels/'
 LINES = 150
@@ -14,7 +11,6 @@ PROC_N = 10
 
 class Parcels():
     
-
     @staticmethod
     def retrieve_columns(x, y): #this method retrive and store in a directory all the parcels divided by column. The parallelism grade is now 10
 
@@ -22,18 +18,22 @@ class Parcels():
 
         for i in range(x, x+TIMES+1): #loop on the columns
         
+            ex = 0 
             json_array = []
             
             for j in range(y, LINES+1): #loop on the lines
 
                 try:
-                    p = requests.get(PARCELS_URL + str(i) + '/' + str(j))
+                    p = requests.get(PARCELS_URL + str(i) + '/' + str(j))   
+                    if ex != 0: # taking into account how many exceptions has been rised in a row
+                        ex = 0
                     p_json = json.loads(str(p.text))
                     json_array.append(p_json)
 
                 except:
-                    missed_parcels.append({'x': i, 'y': j})
-                    continue
+                    ex =+ 1
+                    print("Hello, I tried to retrive ("+str(i)+", "+str(j)+"), but I need to rest just "+str(ex*5)+' seconds...')
+                    time.sleep(5*ex)
 
             with open("COLUMNS_JSON/column_"+ str(i) + ".json", "a+") as f: #open a file and store the parcels retrieved
                 json.dump(json_array, f)
@@ -67,14 +67,3 @@ class Parcels():
 
             print(counted_ids)
                     
-if __name__ == '__main__':
-
-    processes = []
-
-    for i in range(0, PROC_N):
-        p = Process(target=Parcels.retrieve_columns, args = (i*TIMES, 0,))
-        p.start()
-        processes.append(p)
-    
-    for p in processes:
-        p.join()
