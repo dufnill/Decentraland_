@@ -4,26 +4,29 @@ import os
 import time
 
 PARCELS_URL = 'https://api.decentraland.org/v2/parcels/'
-LINES = 150
-TIMES = 15
-PROC_N = 10
+LINES = 300
+TIMES = 20
 
+class Parcel():
 
-class Parcels():
-    
     @staticmethod
-    def retrieve_columns(x, y): #this method retrive and store in a directory all the parcels divided by column. The parallelism grade is now 10
+    def retrieve_columns(x): #this method retrive and store in a directory all the parcels divided by column. The parallelism grade is now 10
 
         missed_parcels = []
+        
+        up = x+TIMES
+        if up == 150:
+            up =+ 1
 
-        for i in range(x, x+TIMES+1): #loop on the columns
+        for i in range(x, up): #loop on the columns
         
             ex = 0 
             json_array = []
             
-            for j in range(y, LINES+1): #loop on the lines
+            for j in range(-int(LINES/2),int(LINES/2)+1): #loop on the lines
 
                 try:
+
                     p = requests.get(PARCELS_URL + str(i) + '/' + str(j))   
                     if ex != 0: # taking into account how many exceptions has been rised in a row
                         ex = 0
@@ -38,10 +41,6 @@ class Parcels():
             with open("COLUMNS_JSON/column_"+ str(i) + ".json", "a+") as f: #open a file and store the parcels retrieved
                 json.dump(json_array, f)
             print('Column '+str(i)+' fully retrieved')
-
-        if missed_parcels != []: #open a file and store the cooridates of the missed parcels if there are any
-            with open("COLUMNS_JSON/missed.json", 'a+') as m: 
-                json.dump(missed_parcels, m)
 
     @staticmethod
     def parse_columns_ids(directory): #this method parse the columns retrived to get the ids. It stores all the parcels' id in different files divided by column
