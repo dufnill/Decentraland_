@@ -94,16 +94,21 @@ class Order():
                 w.write(json.dumps(result)+'\n')
 
     @staticmethod
-    def retrive_parcels(status, start): # method to retrive estates orders given the starting udating timestamp and the final updating timestamp
+    def retrive_orders(category, status, start): # method to retrive estates orders given the starting udating timestamp and the final updating timestamp
+
+        if category not in ['parcel', 'estate', 'wearable']:
+            return 'Choose a category between <parcel, estate, wearable>'
+        if status not in ['open', 'sold', 'cancelled']:
+            return 'Choose a status between <open, sold, cancelled>'
 
         while True:
 
-            with open('ORDERS/parcels_'+status+'.json', 'a+') as w:
+            with open(category.upper()+'/'+category+'_'+status+'.json', 'a+') as w:
                 
                 #composing the gql query string inserting the last update i stored
                 mystring = """
                 {
-                    orders (first: 1000 orderBy: updatedAt orderDirection: asc where: {category:parcel status:"""+status+""" updatedAt_gt:"""+str(start)+"""}) {
+                    orders (first: 1000 orderBy: updatedAt orderDirection: asc where: {category:"""+category+""" status:"""+status+""" updatedAt_gt:"""+str(start)+"""}) {
                         id
                         category
                         nft {
@@ -111,14 +116,14 @@ class Order():
                         }
                         nftAddress
                         tokenId
-                    txHash
-                    owner
-                    buyer
-                    price
-                    blockNumber
-                    expiresAt
-                    createdAt
-                    updatedAt
+                        txHash
+                        owner
+                        buyer
+                        price
+                        blockNumber
+                        expiresAt
+                        createdAt
+                        updatedAt
                     }
                 }
                 """
